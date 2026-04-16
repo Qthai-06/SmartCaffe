@@ -1,0 +1,6 @@
+streamlit
+ultralytics
+prophet
+pandas
+opencv-python
+plotly
