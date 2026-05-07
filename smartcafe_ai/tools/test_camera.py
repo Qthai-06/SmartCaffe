@@ -7,8 +7,8 @@ import os
 def main():
     print("🚀 Đang khởi động Camera và nạp AI...")
     
-    # Tìm file AI mà chúng ta vừa train
-    model_path = os.path.join("models", "smartcafe", "weights", "best.pt")
+    # Tìm file AI mà chúng ta vừa train (đã được copy về data/models)
+    model_path = os.path.join("data", "models", "best.pt")
     
     if os.path.exists(model_path):
         model = YOLO(model_path)
