@@ -1,6 +1,45 @@
-streamlit
-ultralytics
-prophet
-pandas
-opencv-python
-plotly
+# ==========================================
+# SMARTCAFE AI - DANH SÁCH THƯ VIỆN BẮT BUỘC
+# ==========================================
+# Cài đặt tự động toàn bộ: 
+#   pip install -r requirements.txt
+#
+# Hoặc bạn có thể Copy/Paste từng lệnh bên dưới 
+# nếu muốn cài đặt thủ công từng phần:
+# ==========================================
+
+# ------------------------------------------
+# 1. Giao diện Web (Streamlit Dashboard)
+# ------------------------------------------
+# Lệnh tải: pip install streamlit>=1.30.0
+streamlit>=1.30.0
+
+# ------------------------------------------
+# 2. Lõi Trí tuệ Nhân tạo & Xử lý Ảnh
+# ------------------------------------------
+# Lệnh tải: pip install ultralytics>=8.0.0
+ultralytics>=8.0.0
+
+# Lệnh tải: pip install opencv-python>=4.8.0
+opencv-python>=4.8.0
+
+# Lệnh tải: pip install Pillow>=10.0.0
+Pillow>=10.0.0
+
+# ------------------------------------------
+# 3. Phân tích Dữ liệu & Xử lý Ma trận
+# ------------------------------------------
+# Lệnh tải: pip install pandas>=2.0.0
+pandas>=2.0.0
+
+# Lệnh tải: pip install numpy>=1.24.0
+numpy>=1.24.0
+
+# ------------------------------------------
+# 4. Dự báo & Biểu đồ Nâng cao
+# ------------------------------------------
+# Lệnh tải: pip install prophet>=1.1.5
+prophet>=1.1.5
+
+# Lệnh tải: pip install plotly>=5.18.0
+plotly>=5.18.0

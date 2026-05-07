@@ -31,12 +31,14 @@ class SmartCafeVision:
             4: 'sua_dac'
         }
         
-    def process_frame(self, frame):
+    def process_frame(self, frame, conf_threshold=0.2, allowed_classes=None):
         """
         Xử lý frame ảnh, nhận diện 5 mặt hàng của quán.
         
         Args:
             frame: Ảnh đầu vào từ camera (numpy array dạng BGR).
+            conf_threshold: Độ nhạy của AI (0.0 đến 1.0)
+            allowed_classes: Danh sách các tên mặt hàng cho phép nhận diện
             
         Returns:
             processed_frame: Ảnh đã vẽ bounding box.
@@ -47,17 +49,30 @@ class SmartCafeVision:
             'cafe_hat': 0, 'cafe_xay': 0, 'ly_giay': 0, 'ly_nhua': 0, 'sua_dac': 0
         }
 
-        # Thực hiện dự đoán
-        results = self.model(frame, conf=0.4, verbose=False)
-        
-        # Vẽ bounding box lên ảnh
-        processed_frame = results[0].plot()
-        
-        # Cập nhật số lượng
-        for box in results[0].boxes:
-            class_id = int(box.cls[0].item())
-            if class_id in self.class_names:
-                item_name = self.class_names[class_id]
-                inventory_counts[item_name] += 1
+        # Lọc ID của các class được phép nhận diện
+        class_ids = []
+        if allowed_classes is not None:
+            for cls_id, cls_name in self.class_names.items():
+                if cls_name in allowed_classes:
+                    class_ids.append(cls_id)
+        else:
+            class_ids = list(self.class_names.keys())
+
+        # Thực hiện dự đoán chỉ khi có ít nhất 1 class được chọn
+        if len(class_ids) > 0:
+            results = self.model(frame, conf=conf_threshold, classes=class_ids, verbose=False)
+            
+            # Vẽ bounding box lên ảnh
+            processed_frame = results[0].plot()
+            
+            # Cập nhật số lượng
+            for box in results[0].boxes:
+                class_id = int(box.cls[0].item())
+                if class_id in self.class_names:
+                    item_name = self.class_names[class_id]
+                    inventory_counts[item_name] += 1
+        else:
+            # Nếu người dùng bỏ chọn tất cả, trả về ảnh gốc
+            processed_frame = frame
                 
         return processed_frame, inventory_counts
