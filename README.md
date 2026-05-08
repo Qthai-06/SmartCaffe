@@ -2,7 +2,7 @@
 
 **SmartCafe AI** là một hệ thống quản lý kho thông minh tự động dành cho các quán cà phê, ứng dụng công nghệ Trí tuệ Nhân tạo (Computer Vision) với mô hình **YOLOv8** kết hợp giao diện web tương tác được xây dựng bằng **Streamlit**.
 
-Hệ thống cho phép tự động nhận diện và đếm số lượng các vật dụng, nguyên liệu trong quán thông qua ảnh chụp hoặc camera trực tiếp, giúp tối ưu hóa quy trình kiểm kê và quản lý kho. (Leader Lưu Nhật Tân)
+Hệ thống cho phép tự động nhận diện và đếm số lượng các vật dụng, nguyên liệu trong quán thông qua ảnh chụp hoặc camera trực tiếp, giúp tối ưu hóa quy trình kiểm kê và quản lý kho. (Leader Lưu Nhật Tân - https://github.com/luunhuttan)
 
 ---
 
