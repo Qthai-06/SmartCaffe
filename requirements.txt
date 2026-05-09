@@ -17,8 +17,8 @@ streamlit>=1.30.0
 # ------------------------------------------
 # 2. Lõi Trí tuệ Nhân tạo & Xử lý Ảnh
 # ------------------------------------------
-# Lệnh tải: pip install ultralytics>=8.0.0
-ultralytics>=8.0.0
+# Lệnh tải: pip install ultralytics>=8.3.0
+ultralytics>=8.3.0
 
 # Lệnh tải: pip install opencv-python>=4.8.0
 opencv-python>=4.8.0

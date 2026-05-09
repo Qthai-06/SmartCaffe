@@ -16,8 +16,8 @@ class SmartCafeVision:
         
         # Nếu chưa train xong thì tạm dùng model rỗng
         if not os.path.exists(model_path):
-            print(f"⚠️ Chưa tìm thấy {model_path}. Tạm dùng yolov8n.pt...")
-            self.model = YOLO("yolov8n.pt")
+            print(f"⚠️ Chưa tìm thấy {model_path}. Tạm dùng yolo11n.pt...")
+            self.model = YOLO("yolo11n.pt")
         else:
             print("✅ Đã nạp thành công bộ não Custom SmartCafe!")
             self.model = YOLO(model_path)

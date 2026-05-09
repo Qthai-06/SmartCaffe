@@ -14,8 +14,8 @@ def main():
         model = YOLO(model_path)
         print("✅ Đã nạp thành công bộ não Custom (SmartCafe)!")
     else:
-        print("⚠️ AI vẫn đang được train (chưa sinh ra file best.pt). Dùng tạm model gốc yolov8n.pt để test camera trước...")
-        model = YOLO("yolov8n.pt")
+        print("⚠️ AI vẫn đang được train (chưa sinh ra file best.pt). Dùng tạm model gốc yolo11n.pt để test camera trước...")
+        model = YOLO("yolo11n.pt")
 
     # Mở Camera laptop
     cap = cv2.VideoCapture(0)

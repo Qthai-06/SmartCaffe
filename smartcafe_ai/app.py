@@ -177,7 +177,7 @@ def load_model(model_path):
 def predict_image(image, conf, model_path):
     model = load_model(model_path)
     if model is None:
-        return {}, None, "Không tìm thấy YOLO hoặc model. Hãy kiểm tra ultralytics và file best.pt/yolov8n.pt."
+        return {}, None, "Không tìm thấy YOLO hoặc model. Hãy kiểm tra ultralytics và file best.pt/yolo11n.pt."
     results = model(image, conf=conf, verbose=False)
     result = results[0]
     counts = {}
@@ -216,7 +216,7 @@ with st.sidebar:
     st.markdown("---")
     st.markdown("### ⚙️ Cài đặt hệ thống")
     conf = st.slider("Độ nhạy AI (Confidence)", 0.05, 0.95, 0.40, 0.05)
-    default_model = "data/models/best.pt" if os.path.exists("data/models/best.pt") else "yolov8n.pt"
+    default_model = "data/models/best.pt" if os.path.exists("data/models/best.pt") else "yolo11n.pt"
     model_path = st.text_input("Đường dẫn model", default_model)
     st.markdown("""
     <div class="side-card">

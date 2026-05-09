@@ -4,8 +4,8 @@ import os
 def main():
     print("🚀 BẮT ĐẦU HUẤN LUYỆN MODEL SMARTCAFE AI...")
     
-    # Tải pre-trained model nhẹ nhất của YOLO (Nano) để làm nền tảng học
-    model = YOLO("yolov8n.pt") 
+    # Tải pre-trained model nhẹ nhất của YOLO11 (Nano) để làm nền tảng học
+    model = YOLO("yolo11n.pt")
 
     # Bắt đầu train với 50 epochs (vòng lặp học). Do data ít (54 ảnh) nên chạy khoảng 5-10 phút là xong.
     results = model.train(
