@@ -60,7 +60,7 @@ Sau khi cài đặt xong môi trường, bạn có thể khởi động ứng d�
 
 ```bash
 cd smartcafe_ai
-streamlit run app.py
+python -m streamlit run app.py
 ```
 
 Ứng dụng sẽ tự động mở trên trình duyệt tại địa chỉ `http://localhost:8501`.
