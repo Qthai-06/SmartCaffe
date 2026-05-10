@@ -16,21 +16,30 @@ class SmartCafeVision:
 
         base_dir = os.path.dirname(os.path.abspath(__file__))
 
-        self.model_path = os.path.join(
-            base_dir,
-            "models",
-            "smartcafe",
-            "weights",
-            "best.pt"
-        )
+        # Try multiple candidate locations for the custom model (more robust)
+        candidates = [
+            os.path.join(base_dir, "models", "smartcafe", "weights", "best.pt"),
+            os.path.join(os.path.dirname(base_dir), "models", "smartcafe", "weights", "best.pt"),
+            os.path.join(os.path.dirname(base_dir), "data", "models", "best.pt"),
+            os.path.join(os.path.dirname(base_dir), "models", "best.pt"),
+        ]
+
+        self.model_path = None
+        for p in candidates:
+            if os.path.exists(p):
+                self.model_path = p
+                break
+
+        print("MODEL PATH candidates checked:\n  ", "\n  ".join(candidates))
+
+        if not self.model_path:
+            raise FileNotFoundError(
+                "Không tìm thấy model custom tại bất kỳ vị trí nào sau đây:\n"
+                f"{chr(10).join(' - ' + p for p in candidates)}\n"
+                "Hãy thả file `best.pt` vào một trong các đường dẫn trên."
+            )
 
         print("MODEL PATH =", self.model_path)
-
-        if not os.path.exists(self.model_path):
-            raise FileNotFoundError(
-                f"Không tìm thấy model custom tại: {self.model_path}\n"
-                "Hãy kiểm tra lại file best.pt."
-            )
 
         print("✅ Đã nạp thành công bộ não Custom SmartCafe!")
         self.model = YOLO(self.model_path)

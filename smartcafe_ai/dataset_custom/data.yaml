@@ -2,12 +2,12 @@ train: ../train/images
 val: ../valid/images
 test: ../test/images
 
-nc: 5
-names: ['cafe_hat', 'cafe_xay', 'ly_giay', 'ly_nhua', 'sua_dac']
+nc: 6
+names: ['Ly_giay', 'cafe_hat', 'cafe_xay', 'ly_giay', 'ly_nhua', 'sua_dac']
 
 roboflow:
-  workspace: luus-workspace-ai9sp
-  project: smartcafe
-  version: 3
+  workspace: ts-workspace-l4pjv
+  project: smartcaffe-ai
+  version: 4
   license: CC BY 4.0
-  url: https://universe.roboflow.com/luus-workspace-ai9sp/smartcafe/dataset/3
+  url: https://universe.roboflow.com/ts-workspace-l4pjv/smartcaffe-ai/dataset/4
