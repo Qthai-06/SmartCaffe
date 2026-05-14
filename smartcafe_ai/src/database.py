@@ -7,6 +7,7 @@ from typing import Dict, List, Optional
 import pandas as pd
 
 ITEMS = ["cafe_hat", "cafe_xay", "ly_giay", "ly_nhua", "sua_dac"]
+FALLBACK_BASE_DATE = datetime.datetime(2000, 1, 1, 0, 0, 0)
 logger = logging.getLogger(__name__)
 
 
@@ -90,13 +91,12 @@ def migrate_csv_to_sqlite() -> None:
         return
 
     records: List[Dict[str, int]] = []
-    base_fallback = datetime.datetime(2000, 1, 1, 0, 0, 0)
     for idx, row in df.iterrows():
         raw_time = str(row.get("Thời gian", "")).strip()
         try:
             recorded_at = datetime.datetime.fromisoformat(raw_time).strftime("%Y-%m-%d %H:%M:%S")
         except ValueError:
-            recorded_at = (base_fallback + datetime.timedelta(seconds=int(idx))).strftime("%Y-%m-%d %H:%M:%S")
+            recorded_at = (FALLBACK_BASE_DATE + datetime.timedelta(seconds=int(idx))).strftime("%Y-%m-%d %H:%M:%S")
 
         records.append(
             {

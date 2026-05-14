@@ -11,6 +11,7 @@ DISPLAY_NAMES = {
     "ly_nhua": "Ly nhựa",
     "sua_dac": "Sữa đặc",
 }
+DAYS_IN_WEEK = 7
 
 
 def _build_forecast(history_df: pd.DataFrame, days: int) -> pd.DataFrame:
@@ -30,7 +31,7 @@ def _build_forecast(history_df: pd.DataFrame, days: int) -> pd.DataFrame:
     for item in DISPLAY_NAMES.keys():
         curr = int(latest.get(item, 0) or 0)
         if previous is None:
-            daily_usage = max(curr // 7, 1) if curr > 0 else 0
+            daily_usage = max(curr // DAYS_IN_WEEK, 1) if curr > 0 else 0
         else:
             prev = int(previous.get(item, 0) or 0)
             daily_usage = max(prev - curr, 0)

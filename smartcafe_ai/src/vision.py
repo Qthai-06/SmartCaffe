@@ -8,7 +8,7 @@ from typing import Dict, List, Optional, Tuple
 from ultralytics import YOLO
 
 DEFAULT_CLASSES = ["cafe_hat", "cafe_xay", "ly_giay", "ly_nhua", "sua_dac"]
-ALIASES = {"lygiay": "ly_giay", "ly_giay": "ly_giay", "ly-giay": "ly_giay", "Ly_giay": "ly_giay"}
+ALIASES = {"lygiay": "ly_giay", "ly-giay": "ly_giay", "Ly_giay": "ly_giay"}
 logger = logging.getLogger(__name__)
 
 
