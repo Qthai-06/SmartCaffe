@@ -498,7 +498,7 @@ if menu == "Trang chủ":
                 st.image(result_img, caption="Kết quả AI nhận diện", use_container_width=True)
             except (OSError, ValueError, RuntimeError) as ex:
                 logger.exception("Lỗi xử lý AI ở Trang chủ")
-                st.error(f"Lỗi xử lý AI: {ex}")
+                st.error("Không thể xử lý ảnh AI lúc này. Vui lòng kiểm tra model/dữ liệu và thử lại.")
                 counts = {}
 
             if counts and st.button("Lưu kho", type="primary", use_container_width=True):

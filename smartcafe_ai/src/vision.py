@@ -4,7 +4,6 @@ import logging
 import os
 from typing import Dict, List, Optional, Tuple
 
-import cv2
 # pyrefly: ignore [missing-import]
 from ultralytics import YOLO
 
@@ -140,8 +139,6 @@ class SmartCafeVision:
             if item_name:
                 inventory_counts[item_name] += 1
 
-        if len(frame.shape) == 2:
-            processed_frame = cv2.cvtColor(processed_frame, cv2.COLOR_BGR2GRAY)
         return processed_frame, inventory_counts
 
 

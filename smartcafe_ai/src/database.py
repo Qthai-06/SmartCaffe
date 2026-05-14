@@ -82,7 +82,7 @@ def migrate_csv_to_sqlite() -> None:
 
     try:
         df = pd.read_csv(csv_file)
-    except (FileNotFoundError, pd.errors.EmptyDataError, pd.errors.ParserError, OSError) as ex:
+    except (pd.errors.EmptyDataError, pd.errors.ParserError, OSError) as ex:
         logger.warning("CSV migration skipped because CSV could not be read: %s", ex)
         return
 
@@ -90,10 +90,17 @@ def migrate_csv_to_sqlite() -> None:
         return
 
     records: List[Dict[str, int]] = []
-    for _, row in df.iterrows():
+    base_fallback = datetime.datetime(2000, 1, 1, 0, 0, 0)
+    for idx, row in df.iterrows():
+        raw_time = str(row.get("Thời gian", "")).strip()
+        try:
+            recorded_at = datetime.datetime.fromisoformat(raw_time).strftime("%Y-%m-%d %H:%M:%S")
+        except ValueError:
+            recorded_at = (base_fallback + datetime.timedelta(seconds=int(idx))).strftime("%Y-%m-%d %H:%M:%S")
+
         records.append(
             {
-                "recorded_at": str(row.get("Thời gian", datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"))),
+                "recorded_at": recorded_at,
                 **{item: int(row.get(item, 0) or 0) for item in ITEMS},
             }
         )

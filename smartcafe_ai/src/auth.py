@@ -1,5 +1,6 @@
 import json
 import os
+import secrets
 from typing import Dict, List, Optional
 
 
@@ -53,7 +54,6 @@ def authenticate(email: str, password: str) -> Optional[Dict[str, str]]:
     password = (password or "").strip()
 
     for user in get_auth_users():
-        if user["email"] == email and user["password"] == password:
+        if user["email"] == email and secrets.compare_digest(user["password"], password):
             return user
     return None
-

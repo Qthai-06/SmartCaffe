@@ -24,13 +24,16 @@ def _build_forecast(history_df: pd.DataFrame, days: int) -> pd.DataFrame:
         return pd.DataFrame()
 
     latest = history_df.iloc[-1]
-    previous = history_df.iloc[-2] if len(history_df) > 1 else latest
+    previous = history_df.iloc[-2] if len(history_df) > 1 else None
 
     rows = []
     for item in DISPLAY_NAMES.keys():
         curr = int(latest.get(item, 0) or 0)
-        prev = int(previous.get(item, 0) or 0)
-        daily_usage = max(prev - curr, 0)
+        if previous is None:
+            daily_usage = max(curr // 7, 1) if curr > 0 else 0
+        else:
+            prev = int(previous.get(item, 0) or 0)
+            daily_usage = max(prev - curr, 0)
         predicted_need = daily_usage * days
         safety_stock = max(int(predicted_need * 0.2), 1) if predicted_need > 0 else 0
         recommend = max(predicted_need + safety_stock - curr, 0)
