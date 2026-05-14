@@ -3,6 +3,7 @@ import pandas as pd
 import datetime
 import cv2
 import os
+import logging
 import numpy as np
 from PIL import Image
 from src.vision import SmartCafeVision
@@ -11,6 +12,8 @@ from src.database import save_inventory as save_inventory_snapshot, get_latest_i
 import streamlit.components.v1 as components
 from ui.page_inventory import render as render_inventory_page
 from ui.page_advisor import render as render_advisor_page
+
+logger = logging.getLogger(__name__)
 
 st.set_page_config(
     page_title="SmartCafé AI",
@@ -70,7 +73,8 @@ for item in ITEMS:
 def load_ai():
     try:
         return SmartCafeVision()
-    except Exception:
+    except (FileNotFoundError, ValueError, RuntimeError) as ex:
+        logger.error("Không thể nạp model AI: %s", ex)
         return None
 
 vision_core = load_ai()
@@ -492,7 +496,8 @@ if menu == "Trang chủ":
             try:
                 result_img, counts = process_image(image_file)
                 st.image(result_img, caption="Kết quả AI nhận diện", use_container_width=True)
-            except Exception as ex:
+            except (OSError, ValueError, RuntimeError) as ex:
+                logger.exception("Lỗi xử lý AI ở Trang chủ")
                 st.error(f"Lỗi xử lý AI: {ex}")
                 counts = {}
 

@@ -1,5 +1,6 @@
 # pyrefly: ignore [missing-import]
 import ast
+import logging
 import os
 from typing import Dict, List, Optional, Tuple
 
@@ -9,6 +10,7 @@ from ultralytics import YOLO
 
 DEFAULT_CLASSES = ["cafe_hat", "cafe_xay", "ly_giay", "ly_nhua", "sua_dac"]
 ALIASES = {"lygiay": "ly_giay", "ly_giay": "ly_giay", "ly-giay": "ly_giay", "Ly_giay": "ly_giay"}
+logger = logging.getLogger(__name__)
 
 
 def _normalize_class_name(name: str) -> str:
@@ -46,7 +48,8 @@ def _load_expected_classes(base_dir: str) -> List[str]:
                                 dedup.append(c)
                         if dedup:
                             return dedup
-    except Exception:
+    except (OSError, ValueError, SyntaxError) as ex:
+        logger.warning("Cannot parse dataset class names from %s: %s", data_yaml, ex)
         return DEFAULT_CLASSES
 
     return DEFAULT_CLASSES

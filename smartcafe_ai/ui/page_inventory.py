@@ -1,6 +1,7 @@
 # pyrefly: ignore [missing-import]
 import streamlit as st
 import pandas as pd
+import logging
 # pyrefly: ignore [missing-import]
 from PIL import Image
 # pyrefly: ignore [missing-import]
@@ -10,11 +11,14 @@ import cv2
 from src.vision import SmartCafeVision
 from src.database import save_inventory_to_csv, get_inventory_history, get_audit_log
 
+logger = logging.getLogger(__name__)
+
 @st.cache_resource
 def load_vision_model():
     try:
         return SmartCafeVision()
-    except Exception:
+    except (FileNotFoundError, ValueError, RuntimeError) as ex:
+        logger.error("Không thể nạp model AI: %s", ex)
         return None
 
 danh_sach_mat_hang = ['cafe_hat', 'cafe_xay', 'ly_giay', 'ly_nhua', 'sua_dac']

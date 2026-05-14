@@ -1,4 +1,5 @@
 import datetime
+import logging
 import os
 import sqlite3
 from typing import Dict, List, Optional
@@ -6,6 +7,7 @@ from typing import Dict, List, Optional
 import pandas as pd
 
 ITEMS = ["cafe_hat", "cafe_xay", "ly_giay", "ly_nhua", "sua_dac"]
+logger = logging.getLogger(__name__)
 
 
 def _base_dir() -> str:
@@ -80,7 +82,8 @@ def migrate_csv_to_sqlite() -> None:
 
     try:
         df = pd.read_csv(csv_file)
-    except Exception:
+    except (FileNotFoundError, pd.errors.EmptyDataError, pd.errors.ParserError, OSError) as ex:
+        logger.warning("CSV migration skipped because CSV could not be read: %s", ex)
         return
 
     if df.empty:
@@ -231,4 +234,3 @@ def get_audit_log(limit: int = 200) -> pd.DataFrame:
     if not rows:
         return pd.DataFrame()
     return pd.DataFrame([dict(row) for row in rows])
-

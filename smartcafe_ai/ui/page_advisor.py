@@ -1,5 +1,5 @@
-import pandas as pd
 import streamlit as st
+import pandas as pd
 
 from src.database import get_inventory_history
 from ui.components import render_metric_card
@@ -86,4 +86,3 @@ def render():
 
     st.markdown("### Bảng khuyến nghị")
     st.dataframe(forecast_df, use_container_width=True, hide_index=True)
-
