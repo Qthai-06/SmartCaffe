@@ -6,7 +6,11 @@ import os
 import numpy as np
 from PIL import Image
 from src.vision import SmartCafeVision
+from src.auth import authenticate, get_auth_users
+from src.database import save_inventory as save_inventory_snapshot, get_latest_inventory, init_database
 import streamlit.components.v1 as components
+from ui.page_inventory import render as render_inventory_page
+from ui.page_advisor import render as render_advisor_page
 
 st.set_page_config(
     page_title="SmartCafé AI",
@@ -52,10 +56,22 @@ for item in ITEMS:
 
 if "logged_in" not in st.session_state:
     st.session_state.logged_in = False
+if "user_name" not in st.session_state:
+    st.session_state.user_name = "Admin"
+if "user_role" not in st.session_state:
+    st.session_state.user_role = "admin"
+
+init_database()
+latest_inventory = get_latest_inventory()
+for item in ITEMS:
+    st.session_state[item] = latest_inventory.get(item, st.session_state.get(item, 0))
 
 @st.cache_resource
 def load_ai():
-    return SmartCafeVision()
+    try:
+        return SmartCafeVision()
+    except Exception:
+        return None
 
 vision_core = load_ai()
 
@@ -290,23 +306,21 @@ def inventory_table():
     return pd.DataFrame(rows)
 
 def save_inventory():
-    now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-
-    try:
-        df = pd.read_csv(CSV_FILE_PATH)
-    except FileNotFoundError:
-        df = pd.DataFrame(columns=["Thời gian"] + ITEMS)
-
-    row = {"Thời gian": now}
-
-    for item in ITEMS:
-        row[item] = st.session_state[item]
-
-    df = pd.concat([df, pd.DataFrame([row])], ignore_index=True)
-    df.to_csv(CSV_FILE_PATH, index=False, encoding="utf-8-sig")
+    payload = {item: int(st.session_state.get(item, 0) or 0) for item in ITEMS}
+    previous = get_latest_inventory()
+    save_inventory_snapshot(
+        inventory_counts=payload,
+        source="app_main",
+        actor=st.session_state.get("user_name", "staff"),
+        previous_counts=previous,
+        reason="inventory_save",
+    )
 
 def process_image(image_file):
-    image = Image.open(image_file)
+    if vision_core is None:
+        raise RuntimeError("Model AI chưa sẵn sàng.")
+
+    image = Image.open(image_file).convert("RGB")
     frame = np.array(image)
 
     if len(frame.shape) == 3:
@@ -356,14 +370,18 @@ if not st.session_state.logged_in:
         st.checkbox("Ghi nhớ đăng nhập")
 
         if st.button("Đăng nhập", type="primary", use_container_width=True):
-            if email == "admin@gmail.com" and password == "admin":
+            user = authenticate(email, password)
+            if user:
                 st.session_state.logged_in = True
+                st.session_state.user_name = user.get("name", "Admin")
+                st.session_state.user_role = user.get("role", "staff")
                 st.rerun()
             else:
                 st.error("Sai email hoặc mật khẩu!")
 
         st.markdown("</div>", unsafe_allow_html=True)
-        st.caption("Tài khoản test: admin@gmail.com / admin")
+        if not get_auth_users():
+            st.warning("Chưa cấu hình tài khoản. Vui lòng đặt SMARTCAFE_AUTH_USERS_JSON hoặc SMARTCAFE_ADMIN_EMAIL/PASSWORD.")
 
     st.stop()
 
@@ -393,10 +411,11 @@ st.markdown('<div class="main-wrap">', unsafe_allow_html=True)
 
 # Header
 h1, h2 = st.columns([3, 1])
+user_name = st.session_state.get("user_name", "Admin")
 
 with h1:
-    st.markdown("""
-    <div class="hello">Xin chào, Admin! 👋</div>
+    st.markdown(f"""
+    <div class="hello">Xin chào, {user_name}! 👋</div>
     <p style="color:#6b7280;">Đây là tổng quan hoạt động của quán cà phê hôm nay.</p>
     """, unsafe_allow_html=True)
 
@@ -470,12 +489,16 @@ if menu == "Trang chủ":
         image_file = st.file_uploader("Chọn ảnh từ máy", type=["jpg", "jpeg", "png"])
 
         if image_file:
-            result_img, counts = process_image(image_file)
-            st.image(result_img, caption="Kết quả AI nhận diện", use_container_width=True)
+            try:
+                result_img, counts = process_image(image_file)
+                st.image(result_img, caption="Kết quả AI nhận diện", use_container_width=True)
+            except Exception as ex:
+                st.error(f"Lỗi xử lý AI: {ex}")
+                counts = {}
 
-            if st.button("Lưu kho", type="primary", use_container_width=True):
+            if counts and st.button("Lưu kho", type="primary", use_container_width=True):
                 save_inventory()
-                st.success("Đã lưu dữ liệu vào data/inventory.csv")
+                st.success("Đã lưu dữ liệu tồn kho.")
 
         st.markdown("</div>", unsafe_allow_html=True)
 
@@ -513,33 +536,7 @@ if menu == "Trang chủ":
         st.markdown("</div>", unsafe_allow_html=True)
 
 elif menu == "Kiểm kê":
-    st.markdown('<div class="card">', unsafe_allow_html=True)
-    st.markdown('<div class="section-title">Kiểm kê bằng AI</div>', unsafe_allow_html=True)
-
-    option = st.radio("Chọn nguồn ảnh", ["Chụp camera", "Tải ảnh lên"], horizontal=True)
-
-    if option == "Chụp camera":
-        image_file = st.camera_input("Chụp ảnh kiểm kê")
-    else:
-        image_file = st.file_uploader("Tải ảnh lên", type=["jpg", "jpeg", "png"])
-
-    if image_file:
-        result_img, counts = process_image(image_file)
-        st.image(result_img, caption="Kết quả AI nhận diện", use_container_width=True)
-
-        result_df = pd.DataFrame([
-            {"Mặt hàng": DISPLAY_NAMES[k], "Số lượng": v}
-            for k, v in counts.items()
-            if k in DISPLAY_NAMES
-        ])
-
-        st.dataframe(result_df, use_container_width=True, hide_index=True)
-
-        if st.button("Xác nhận lưu kho", type="primary", use_container_width=True):
-            save_inventory()
-            st.success("Đã lưu kiểm kê thành công!")
-
-    st.markdown("</div>", unsafe_allow_html=True)
+    render_inventory_page()
 
 elif menu == "Tồn kho":
     st.markdown('<div class="card">', unsafe_allow_html=True)
@@ -556,21 +553,7 @@ elif menu == "Tồn kho":
     st.markdown("</div>", unsafe_allow_html=True)
 
 elif menu == "AI Advisor":
-    st.markdown('<div class="card">', unsafe_allow_html=True)
-    st.markdown('<div class="section-title">AI Advisor</div>', unsafe_allow_html=True)
-
-    fdf = forecast_data()
-    st.dataframe(fdf, use_container_width=True, hide_index=True)
-    st.line_chart(fdf.set_index("Ngày"))
-
-    if total_qty == 0:
-        st.info("Chưa có dữ liệu tồn kho. Vui lòng kiểm kê trước để AI Advisor phân tích.")
-    else:
-        st.info(f"Hôm nay dự báo khoảng {today_forecast} ly.")
-        st.warning(f"Có {low_count} mặt hàng sắp hết. Nên nhập bổ sung.")
-        st.success("Hệ thống đã có dữ liệu để hỗ trợ ra quyết định nhập hàng.")
-
-    st.markdown("</div>", unsafe_allow_html=True)
+    render_advisor_page()
 
 elif menu == "Xuất báo cáo":
     st.markdown('<div class="card">', unsafe_allow_html=True)

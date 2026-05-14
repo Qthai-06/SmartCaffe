@@ -1,98 +1,89 @@
-import streamlit as st
 import pandas as pd
-import numpy as np
-import plotly.graph_objects as go
+import streamlit as st
+
+from src.database import get_inventory_history
 from ui.components import render_metric_card
+
+DISPLAY_NAMES = {
+    "cafe_hat": "Cà phê hạt",
+    "cafe_xay": "Cà phê xay",
+    "ly_giay": "Ly giấy",
+    "ly_nhua": "Ly nhựa",
+    "sua_dac": "Sữa đặc",
+}
+
+
+def _build_forecast(history_df: pd.DataFrame, days: int) -> pd.DataFrame:
+    if history_df.empty:
+        return pd.DataFrame()
+
+    history_df = history_df.copy()
+    history_df["Thời gian"] = pd.to_datetime(history_df["Thời gian"], errors="coerce")
+    history_df = history_df.dropna(subset=["Thời gian"]).sort_values("Thời gian")
+    if history_df.empty:
+        return pd.DataFrame()
+
+    latest = history_df.iloc[-1]
+    previous = history_df.iloc[-2] if len(history_df) > 1 else latest
+
+    rows = []
+    for item in DISPLAY_NAMES.keys():
+        curr = int(latest.get(item, 0) or 0)
+        prev = int(previous.get(item, 0) or 0)
+        daily_usage = max(prev - curr, 0)
+        predicted_need = daily_usage * days
+        safety_stock = max(int(predicted_need * 0.2), 1) if predicted_need > 0 else 0
+        recommend = max(predicted_need + safety_stock - curr, 0)
+        status = "Ổn định" if recommend == 0 else "Cần nhập"
+        if curr == 0 and predicted_need > 0:
+            status = "Cần nhập gấp"
+        rows.append(
+            {
+                "Mặt hàng": DISPLAY_NAMES[item],
+                "Tồn kho (hiện tại)": curr,
+                f"Dự báo ({days} ngày tới)": predicted_need,
+                "Đề xuất nhập thêm": recommend,
+                "Trạng thái": status,
+            }
+        )
+
+    return pd.DataFrame(rows)
+
 
 def render():
     st.title("AI Cố Vấn")
-    st.markdown("Dự báo nhu cầu tiêu thụ dựa trên dữ liệu lịch sử và đề xuất kế hoạch nhập hàng tối ưu.")
-    
+    st.markdown("Dự báo nhu cầu từ dữ liệu kiểm kho thực tế và đề xuất nhập hàng.")
     st.markdown("---")
-    
-    # Bộ lọc
-    col_filter1, col_filter2 = st.columns(2)
-    with col_filter1:
-        selected_item = st.selectbox(
-            "Chọn mặt hàng phân tích",
-            ["Cà phê hạt (Túi)", "Sữa đặc (Hộp)", "Ly nhựa (Cái)", "Đường (Gói)"]
-        )
-    with col_filter2:
-        forecast_period = st.selectbox(
-            "Thời gian dự báo",
-            ["7 ngày tới", "14 ngày tới", "30 ngày tới"]
-        )
-        
+
+    history_df = get_inventory_history(limit=90)
+    if history_df.empty:
+        st.info("Chưa có dữ liệu kiểm kho để phân tích. Vui lòng kiểm kho trước.")
+        return
+
+    forecast_period = st.selectbox("Thời gian dự báo", ["7 ngày tới", "14 ngày tới", "30 ngày tới"])
+    days_to_predict = int(forecast_period.split()[0])
+
+    forecast_df = _build_forecast(history_df, days_to_predict)
+    if forecast_df.empty:
+        st.info("Không đủ dữ liệu hợp lệ để dự báo.")
+        return
+
+    total_current = int(forecast_df["Tồn kho (hiện tại)"].sum())
+    total_predicted = int(forecast_df[f"Dự báo ({days_to_predict} ngày tới)"].sum())
+    total_recommend = int(forecast_df["Đề xuất nhập thêm"].sum())
+
     st.markdown("### Tổng quan")
     metric_cols = st.columns(3)
     with metric_cols[0]:
-        render_metric_card("Tiêu thụ tuần trước", "45 Túi", "12%")
+        render_metric_card("Tồn kho hiện tại", f"{total_current}")
     with metric_cols[1]:
-        render_metric_card("Dự báo tuần tới", "52 Túi", "15%")
+        render_metric_card("Dự báo tiêu thụ", f"{total_predicted}")
     with metric_cols[2]:
-        render_metric_card("Tồn kho hiện tại", "15 Túi", "-8%")
-        
-    st.markdown("### Biểu đồ Dự báo")
-    
-    # Tạo dữ liệu giả cho Plotly
-    dates_past = pd.date_range(end=pd.Timestamp.today(), periods=30)
-    past_values = np.random.randint(3, 10, size=30)
-    
-    days_to_predict = int(forecast_period.split()[0])
-    dates_future = pd.date_range(start=pd.Timestamp.today(), periods=days_to_predict+1)[1:]
-    future_values = np.random.randint(5, 12, size=days_to_predict)
-    upper_bound = future_values + 2
-    lower_bound = future_values - 2
+        render_metric_card("Đề xuất nhập thêm", f"{total_recommend}")
 
-    # Vẽ biểu đồ với Plotly
-    fig = go.Figure()
-    
-    # Dữ liệu lịch sử
-    fig.add_trace(go.Scatter(
-        x=dates_past, y=past_values,
-        mode='lines+markers',
-        name='Thực tế',
-        line=dict(color='#8D6E63', width=2)
-    ))
-    
-    # Dữ liệu dự báo
-    fig.add_trace(go.Scatter(
-        x=dates_future, y=future_values,
-        mode='lines+markers',
-        name='Dự báo',
-        line=dict(color='#E57373', width=2, dash='dash')
-    ))
-    
-    # Vùng tin cậy
-    fig.add_trace(go.Scatter(
-        x=dates_future.tolist() + dates_future.tolist()[::-1],
-        y=upper_bound.tolist() + lower_bound.tolist()[::-1],
-        fill='toself',
-        fillcolor='rgba(229, 115, 115, 0.2)',
-        line=dict(color='rgba(255,255,255,0)'),
-        hoverinfo="skip",
-        showlegend=True,
-        name='Vùng biến động'
-    ))
+    st.markdown("### Biểu đồ khuyến nghị nhập hàng")
+    st.bar_chart(forecast_df.set_index("Mặt hàng")[["Đề xuất nhập thêm"]])
 
-    fig.update_layout(
-        xaxis_title="Thời gian",
-        yaxis_title="Số lượng",
-        margin=dict(l=20, r=20, t=30, b=20),
-        legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1)
-    )
-    
-    st.plotly_chart(fig, use_container_width=True)
-    
-    st.markdown("### Đề xuất Kế hoạch Nhập hàng")
-    st.info("Hệ thống phân tích mức độ tiêu thụ và tồn kho hiện tại để đưa ra gợi ý nhập hàng phù hợp.")
-    
-    suggestion_data = pd.DataFrame({
-        "Mặt hàng": ["Cà phê hạt", "Sữa đặc", "Ly nhựa"],
-        "Tồn kho (hiện tại)": [15, 8, 200],
-        "Dự báo (7 ngày tới)": [52, 40, 800],
-        "Đề xuất nhập thêm": [40, 35, 700],
-        "Trạng thái": ["Cần nhập gấp", "Cần nhập", "Cần nhập"]
-    })
-    
-    st.dataframe(suggestion_data, use_container_width=True, hide_index=True)
+    st.markdown("### Bảng khuyến nghị")
+    st.dataframe(forecast_df, use_container_width=True, hide_index=True)
+

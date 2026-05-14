@@ -8,11 +8,14 @@ import numpy as np
 # pyrefly: ignore [missing-import]
 import cv2
 from src.vision import SmartCafeVision
-from src.database import save_inventory_to_csv, get_inventory_history
+from src.database import save_inventory_to_csv, get_inventory_history, get_audit_log
 
 @st.cache_resource
 def load_vision_model():
-    return SmartCafeVision()
+    try:
+        return SmartCafeVision()
+    except Exception:
+        return None
 
 danh_sach_mat_hang = ['cafe_hat', 'cafe_xay', 'ly_giay', 'ly_nhua', 'sua_dac']
 display_names = {
@@ -44,7 +47,7 @@ def render():
     st.markdown("---")
     
     # Sử dụng Tabs thay vì selectbox để chuyển đổi mượt mà
-    tab1, tab2, tab3 = st.tabs(["Tải ảnh từ thiết bị", "Chụp ảnh trực tiếp", "Lịch sử kiểm kho"])
+    tab1, tab2, tab3, tab4 = st.tabs(["Tải ảnh từ thiết bị", "Chụp ảnh trực tiếp", "Lịch sử kiểm kho", "Audit log"])
     
     image_source = None
     
@@ -66,11 +69,22 @@ def render():
         else:
             st.info("Chưa có dữ liệu lịch sử nào được lưu.")
 
+    with tab4:
+        st.markdown("### Nhật ký chỉnh sửa tồn kho")
+        audit_df = get_audit_log()
+        if not audit_df.empty:
+            st.dataframe(audit_df, use_container_width=True, hide_index=True)
+        else:
+            st.info("Chưa có chỉnh sửa thủ công nào được ghi nhận.")
+
     if image_source is not None:
         st.markdown("### Kết quả Phân tích")
         col1, col2 = st.columns([1.5, 1])
         
         vision_core = load_vision_model()
+        if vision_core is None:
+            st.error("Không thể nạp model AI. Hãy kiểm tra SMARTCAFE_MODEL_PATH hoặc file best.pt.")
+            return
         
         # Đọc ảnh từ file nguồn và đảm bảo định dạng RGB (Tránh lỗi với ảnh PNG có kênh alpha)
         image = Image.open(image_source).convert('RGB')
