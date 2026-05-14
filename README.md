@@ -12,6 +12,8 @@ Hệ thống cho phép tự động nhận diện và đếm số lượng các 
 - **Tùy chỉnh Nhận diện Nâng cao**: Người dùng có thể tinh chỉnh ngưỡng độ nhạy (Confidence Threshold) và lựa chọn lọc từng loại mặt hàng cần nhận diện trực tiếp trên giao diện để có kết quả tốt nhất.
 - **Tùy biến Kết quả (Human-in-the-loop)**: Hệ thống cho phép người dùng kiểm tra và điều chỉnh số lượng (nếu AI đếm sai) trước khi lưu vào cơ sở dữ liệu.
 - **Phân tích Dữ liệu**: Hiển thị biểu đồ phân bố hàng hóa và lịch sử kiểm kho trong quá khứ.
+- **Bảo mật đăng nhập bằng biến môi trường**: Không còn tài khoản test hardcode trong UI.
+- **Lưu trữ nâng cấp lên SQLite + Audit Log**: Tự động migrate dữ liệu CSV cũ và ghi log chỉnh tay.
 
 ---
 
@@ -60,6 +62,7 @@ Sau khi cài đặt xong môi trường, bạn có thể khởi động ứng d�
 
 ```bash
 cd smartcafe_ai
+cp .env.example .env
 python -m streamlit run app.py
 ```
 
@@ -68,6 +71,37 @@ python -m streamlit run app.py
 **Lưu ý khi chạy lần đầu:** 
 - Nếu bạn chưa có file mô hình YOLO (`best.pt`) được huấn luyện sẵn trong thư mục `data/models/`, hệ thống sẽ tự động dùng mô hình `yolo11n.pt` gốc (sẽ không nhận diện được chính xác các mặt hàng cụ thể của quán).
 - Để AI nhận diện được cà phê, ly nhựa, v.v., bạn cần huấn luyện mô hình (thông qua `tools/train_model.py`) và thả file `best.pt` vào `smartcafe_ai/data/models/`.
+
+---
+
+## 🔐 Cấu Hình Biến Môi Trường
+
+File mẫu: `smartcafe_ai/.env.example`
+
+Biến quan trọng:
+- `SMARTCAFE_ADMIN_EMAIL`, `SMARTCAFE_ADMIN_PASSWORD`: tài khoản quản trị mặc định.
+- `SMARTCAFE_AUTH_USERS_JSON`: danh sách nhiều user dạng JSON (ưu tiên cao hơn).
+- `SMARTCAFE_MODEL_PATH`: chỉ định đường dẫn model cụ thể.
+- `SMARTCAFE_CLASSES`: đồng bộ class labels (vd: `cafe_hat,cafe_xay,ly_giay,ly_nhua,sua_dac`).
+- `SMARTCAFE_DB_PATH`: đường dẫn SQLite.
+
+---
+
+## 🧪 Chạy Unit Test
+
+```bash
+cd smartcafe_ai
+python -m unittest discover -s tests -p "test_*.py"
+```
+
+---
+
+## 🐳 Chạy bằng Docker
+
+```bash
+docker build -t smartcafe-ai .
+docker run --rm -p 8501:8501 --env-file smartcafe_ai/.env.example smartcafe-ai
+```
 
 ---
 
