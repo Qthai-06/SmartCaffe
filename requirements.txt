@@ -43,3 +43,9 @@ prophet>=1.1.5
 
 # Lệnh tải: pip install plotly>=5.18.0
 plotly>=5.18.0
+
+# ------------------------------------------
+# 5. Biến môi trường
+# ------------------------------------------
+# Lệnh tải: pip install python-dotenv>=1.0.0
+python-dotenv>=1.0.0

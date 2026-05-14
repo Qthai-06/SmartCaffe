@@ -6,7 +6,11 @@ import os
 import logging
 import numpy as np
 from PIL import Image
+from dotenv import load_dotenv
 from src.vision import SmartCafeVision
+
+# Load biến môi trường từ file .env
+load_dotenv()
 from src.auth import authenticate, get_auth_users
 from src.database import save_inventory as save_inventory_snapshot, get_latest_inventory, init_database
 import streamlit.components.v1 as components
