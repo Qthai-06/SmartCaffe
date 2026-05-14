@@ -145,4 +145,3 @@ class SmartCafeVision:
 if __name__ == "__main__":
     SmartCafeVision()
     print("✅ Test nạp model thành công.")
-

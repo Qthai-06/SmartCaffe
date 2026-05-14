@@ -16,4 +16,3 @@ EXPOSE 8501
 
 WORKDIR /app/smartcafe_ai
 CMD ["python", "-m", "streamlit", "run", "app.py", "--server.address=0.0.0.0", "--server.port=8501"]
-
